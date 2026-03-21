@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find C:UsersharshOneDriveDesktopbfh2ragapplicationn -not -path */node_modules/* -not -path */.git/* -not -path */build/* -not -path */__pycache__/* -type f)"
+    ]
+  }
+}

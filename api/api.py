@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 import nltk
 import numpy as np
 import requests
@@ -29,14 +30,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# DB connection — set env vars or use defaults below
-conn = psycopg2.connect(
-    dbname=os.environ.get("DB_NAME", "mydb"),
-    user=os.environ.get("DB_USER", "user"),
-    password=os.environ.get("DB_PASSWORD", "password"),
-    host=os.environ.get("DB_HOST", "localhost"),
-    port=os.environ.get("DB_PORT", "5432")
-)
+# DB connection — supports Railway DATABASE_URL or individual env vars
+_db_url = os.environ.get("DATABASE_URL")
+if _db_url:
+    # Railway / Heroku style: postgresql://user:password@host:port/dbname
+    _p = urlparse(_db_url)
+    conn = psycopg2.connect(
+        dbname=_p.path.lstrip("/"),
+        user=_p.username,
+        password=_p.password,
+        host=_p.hostname,
+        port=_p.port or 5432,
+    )
+else:
+    conn = psycopg2.connect(
+        dbname=os.environ.get("DB_NAME", "mydb"),
+        user=os.environ.get("DB_USER", "user"),
+        password=os.environ.get("DB_PASSWORD", "password"),
+        host=os.environ.get("DB_HOST", "localhost"),
+        port=os.environ.get("DB_PORT", "5432"),
+    )
 
 cursor = conn.cursor()
 
@@ -145,7 +158,7 @@ def ans_from_llm(ans, query):
         base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
         default_headers={
-            "HTTP-Referer": "http://localhost:3001",
+            "HTTP-Referer": os.environ.get("FRONTEND_URL", "http://localhost:3001"),
             "X-Title": "RAG Application"
         }
     )
@@ -253,4 +266,5 @@ def chat(req: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -12,10 +12,12 @@ build/
 venv/
 env/
 
-# Environment variables
+# Environment variables (keep .env.example)
 .env
 .env.local
 .env.*.local
+!.env.example
+!**/.env.example
 
 # Node
 node_modules/

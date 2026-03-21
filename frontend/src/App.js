@@ -4,6 +4,11 @@ import axios from 'axios';
 import { useDropzone } from 'react-dropzone';
 import './App.css';
 
+// In production (Vercel), REACT_APP_API_URL points to Railway backend.
+// In development, it's empty so the CRA proxy (package.json "proxy") handles /api/... routes.
+const API_BASE = process.env.REACT_APP_API_URL || '';
+const apiUrl = (path) => API_BASE ? `${API_BASE}${path}` : `/api${path}`;
+
 // ─── Home ────────────────────────────────────────────────────────────────────
 function Home() {
   const navigate = useNavigate();
@@ -63,7 +68,7 @@ function TopicPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('/api/process_topic', { topic });
+      const res = await axios.post(apiUrl('/process_topic'), { topic });
       navigate('/chat', { state: { docId: res.data.doc_id, source: topic, sourceType: 'topic' } });
     } catch (e) {
       setError(e.response?.data?.error || e.response?.data?.detail || e.message);
@@ -104,7 +109,7 @@ function UrlPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('/api/process_url', { url });
+      const res = await axios.post(apiUrl('/process_url'), { url });
       navigate('/chat', { state: { docId: res.data.doc_id, source: url, sourceType: 'url' } });
     } catch (e) {
       setError(e.response?.data?.error || e.response?.data?.detail || e.message);
@@ -149,7 +154,7 @@ function PdfPage() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await axios.post('/api/process_pdf', formData);
+      const res = await axios.post(apiUrl('/process_pdf'), formData);
       navigate('/chat', { state: { docId: res.data.doc_id, source: file.name, sourceType: 'pdf' } });
     } catch (e) {
       setError(e.response?.data?.error || e.response?.data?.detail || e.message);
@@ -210,7 +215,7 @@ function ChatPage() {
     setQuery('');
     setLoading(true);
     try {
-      const res = await axios.post('/api/chat', { query: currentQuery, doc_id: docId });
+      const res = await axios.post(apiUrl('/chat'), { query: currentQuery, doc_id: docId });
       setMessages([...newMessages, { type: 'ai', text: res.data.answer, chunks: res.data.chunks }]);
       setActiveChunks(res.data.chunks || []);
     } catch (e) {
