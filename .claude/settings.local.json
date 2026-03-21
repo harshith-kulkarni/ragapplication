@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/harsh/OneDrive/Desktop/bfh2/ragapplicationn -type f -name *.py -o -name *.js -o -name *.jsx -o -name *.ts -o -name *.tsx -o -name *.json -o -name *.html -o -name *.css -o -name *.env* -o -name *.txt -o -name *.md)",
+      "Bash(ls:*)",
+      "Bash(python -m py_compile api.py)",
+      "Bash(timeout /t 30 /nobreak)",
+      "Bash(python -c \":*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

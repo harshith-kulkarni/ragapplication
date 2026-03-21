@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+psycopg2-binary
+nltk
+wikipedia
+numpy
+sentence-transformers
+bs4
+requests
+PyPDF2
+openai
