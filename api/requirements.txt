@@ -5,7 +5,7 @@ psycopg2-binary==2.9.9
 nltk==3.9.1
 wikipedia==1.4.0
 numpy==1.26.4
-sentence-transformers==3.0.1
+fastembed==0.3.1
 beautifulsoup4==4.12.3
 requests==2.32.3
 PyPDF2==3.0.1

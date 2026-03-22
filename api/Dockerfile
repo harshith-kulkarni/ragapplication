@@ -7,9 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CPU-only PyTorch FIRST — prevents pip from pulling the 2.5 GB GPU version
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
-
 # Install app dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
