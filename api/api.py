@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import PyPDF2
 from io import BytesIO
 from nltk.tokenize import sent_tokenize
-from sentence_transformers import SentenceTransformer, util
+from fastembed import TextEmbedding
 import psycopg2
 import json
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -18,7 +18,7 @@ import openai
 nltk.download('punkt', quiet=True)
 nltk.download('punkt_tab', quiet=True)
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = TextEmbedding("BAAI/bge-small-en-v1.5")
 
 app = FastAPI()
 
@@ -66,15 +66,28 @@ conn.commit()
 
 # -------------------- SEMANTIC CHUNKING --------------------
 
+def cosine_sim(a, b):
+    a, b = np.array(a, dtype=np.float32), np.array(b, dtype=np.float32)
+    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9))
+
+def get_em(text):
+    return np.array(list(model.embed([text]))[0], dtype=np.float32)
+
+def em_list(text_list):
+    return [np.array(e, dtype=np.float32) for e in model.embed(text_list)]
+
+def get_sim(emb1, emb2):
+    return round(cosine_sim(emb1, emb2), 4)
+
 def semantic_chunk(text, threshold=0.75):
     sentences = sent_tokenize(text)
     if len(sentences) == 0:
         return []
-    embeddings = model.encode(sentences)
+    embeddings = em_list(sentences)
     chunks = []
     current_chunk = sentences[0]
     for i in range(len(sentences) - 1):
-        sim = float(util.cos_sim(embeddings[i], embeddings[i+1]))
+        sim = cosine_sim(embeddings[i], embeddings[i+1])
         if sim > threshold:
             current_chunk += " " + sentences[i+1]
         else:
@@ -82,17 +95,6 @@ def semantic_chunk(text, threshold=0.75):
             current_chunk = sentences[i+1]
     chunks.append(current_chunk)
     return chunks
-
-# -------------------- EMBEDDING UTILS --------------------
-
-def get_em(text):
-    return model.encode(text)
-
-def em_list(text_list):
-    return [get_em(text) for text in text_list]
-
-def get_sim(emb1, emb2):
-    return round(float(util.cos_sim(emb1, emb2)[0][0]), 4)
 
 # -------------------- RETRIEVAL --------------------
 
